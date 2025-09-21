@@ -185,34 +185,9 @@ export default function Survey() {
 
   return (
     <VantaBackground>
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="w-full max-w-2xl mx-auto mb-6 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {user.picture && (
-                  <img
-                    src={user.picture}
-                    width={60}
-                    height={60}
-                    alt="Profile"
-                    className="rounded-full cursor-pointer"
-                    onClick={() => setShowLogout(!showLogout)}
-                  />
-                )}
-                {showLogout && (
-                  <Button
-                    variant="outline"
-                    className="absolute mt-1 left-0 right-0 z-10 shadow-lg"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
-                )}
-              </div>
-              <h1 className="text-2xl font-bold text-white">Welcome, {user.name}!</h1>
-            </div>
-          </div>
+      <div className="min-h-screen flex flex-col items-center justify-center pt-16">
+        <div className="w-full max-w-2xl mx-auto mb-6 p-4 text-center">
+          <h1 className="text-2xl font-bold text-white">Welcome, {user.name}!</h1>
         </div>
 
         <div className="w-full max-w-2xl bg-white bg-opacity-80 rounded-lg shadow-lg p-6 md:p-8 backdrop-blur-sm">
