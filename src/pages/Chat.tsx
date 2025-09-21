@@ -8,12 +8,12 @@ interface Message {
   content: string
 }
 
-const rooms = ['General', 'Random', 'Tech Talk']
+const rooms = ['Music Chat', 'Event Planning', 'Genre Discussion', 'Collaborations']
 const mockMessages = [
-  { id: 1, room: 'General', sender: 'Alice', content: 'Hello everyone!' },
-  { id: 2, room: 'General', sender: 'Bob', content: 'Hi Alice, how are you?' },
-  { id: 3, room: 'Random', sender: 'Charlie', content: 'Anyone up for a game night?' },
-  { id: 4, room: 'Tech Talk', sender: 'David', content: 'What do you think about the new React updates?' },
+  { id: 1, room: 'Music Chat', sender: 'MusicLover', content: 'Just discovered this amazing indie band! 🎵' },
+  { id: 2, room: 'Music Chat', sender: 'BeatMaker', content: 'Share the link! Always looking for new sounds' },
+  { id: 3, room: 'Event Planning', sender: 'PartyHost', content: 'Planning a house party next weekend, need playlist suggestions!' },
+  { id: 4, room: 'Genre Discussion', sender: 'JazzFan', content: 'Anyone else think jazz is making a comeback?' },
 ]
 
 function RoomSelector({ rooms, currentRoom, onRoomChange }: {

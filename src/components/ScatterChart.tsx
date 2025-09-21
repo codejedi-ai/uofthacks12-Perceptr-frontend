@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-import Plot from 'react-plotly.js'
-import { RotateCw } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { RotateCw, Music, Calendar, Users } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import emailIcon from '/email.png'
 import instagramIcon from '/instagram.png'
@@ -13,28 +12,41 @@ interface UserData {
   email: string
   instagram: string
   discord: string
+  id: string
 }
 
-interface PlotLayout {
-  'xaxis.range[0]'?: number
-  'xaxis.range[1]'?: number
-  'yaxis.range[0]'?: number
-  'yaxis.range[1]'?: number
+interface CanvasEvent {
+  id: string
+  x: number
+  y: number
+  title: string
+  description: string
+  color: string
+  type: 'concert' | 'party' | 'festival' | 'jam-session'
+  genre: string
+  date: string
+  isDragging?: boolean
 }
 
 export function ScatterChart() {
   const { user } = useAuth()
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
   const [data, setData] = useState<UserData[]>([])
-  const [key, setKey] = useState(0)
+  const [events, setEvents] = useState<CanvasEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [plotLayout, setPlotLayout] = useState<PlotLayout>({
-    'xaxis.range[0]': -10,
-    'xaxis.range[1]': 10,
-    'yaxis.range[0]': -10,
-    'yaxis.range[1]': 10,
+  const [draggedEvent, setDraggedEvent] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [showEventForm, setShowEventForm] = useState(false)
+  const [newEvent, setNewEvent] = useState({ 
+    title: '', 
+    description: '', 
+    color: '#ff6b6b',
+    type: 'party' as 'concert' | 'party' | 'festival' | 'jam-session',
+    genre: '',
+    date: ''
   })
-  
+
   const fetchData = async () => {
     try {
       setIsLoading(true)
@@ -50,32 +62,35 @@ export function ScatterChart() {
       
             if (!userData) {
               return {
-                x: embeddingsData.embeddings_2d[index][0],
-                y: embeddingsData.embeddings_2d[index][1],
+                x: embeddingsData.embeddings_2d[index][0] * 100 + 400,
+                y: embeddingsData.embeddings_2d[index][1] * 100 + 300,
                 name: 'Unknown User',
                 email: '',
                 instagram: '',
                 discord: '',
+                id: label,
               }
             }
       
             return {
-              x: embeddingsData.embeddings_2d[index][0],
-              y: embeddingsData.embeddings_2d[index][1],
+              x: embeddingsData.embeddings_2d[index][0] * 100 + 400,
+              y: embeddingsData.embeddings_2d[index][1] * 100 + 300,
               name: userData.name || 'Unknown',
               email: userData.email || '',
               instagram: userData.social1 || '',
               discord: userData.social2 || '',
+              id: label,
             }
           } catch (error) {
             console.error(`Error fetching user data for ${label}:`, error)
             return {
-              x: embeddingsData.embeddings_2d[index][0],
-              y: embeddingsData.embeddings_2d[index][1],
+              x: embeddingsData.embeddings_2d[index][0] * 100 + 400,
+              y: embeddingsData.embeddings_2d[index][1] * 100 + 300,
               name: 'Error Loading User',
               email: '',
               instagram: '',
               discord: '',
+              id: label,
             }
           }
         })
@@ -95,72 +110,179 @@ export function ScatterChart() {
     }
   }, [user])
 
-  useEffect(() => {
-    if (data.length > 0) {
-      const firstUser = data[0]
-      const span = 5
-  
-      setPlotLayout({
-        'xaxis.range[0]': firstUser.x - span,
-        'xaxis.range[1]': firstUser.x + span,
-        'yaxis.range[0]': firstUser.y - span,
-        'yaxis.range[1]': firstUser.y + span,
-      })
-    }
-  }, [data])
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-  const getInstagramUsername = (url: string) => {
-    return url.split('instagram.com/')[1] || url
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Clear canvas
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+    ctx.lineWidth = 1
+    for (let x = 0; x < canvas.width; x += 50) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, canvas.height)
+      ctx.stroke()
+    }
+    for (let y = 0; y < canvas.height; y += 50) {
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(canvas.width, y)
+      ctx.stroke()
+    }
+
+    // Draw events
+    events.forEach(event => {
+      // Draw event background with gradient
+      const gradient = ctx.createLinearGradient(event.x - 40, event.y - 20, event.x + 40, event.y + 20)
+      gradient.addColorStop(0, event.color)
+      gradient.addColorStop(1, event.color + '80')
+      
+      ctx.fillStyle = gradient
+      ctx.fillRect(event.x - 40, event.y - 20, 80, 40)
+      
+      // Draw border
+      ctx.strokeStyle = event.color
+      ctx.lineWidth = 2
+      ctx.strokeRect(event.x - 40, event.y - 20, 80, 40)
+      
+      // Draw music note icon
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '16px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText('🎵', event.x - 25, event.y + 5)
+      
+      // Draw event title
+      ctx.font = '10px Arial'
+      ctx.fillText(event.title, event.x + 5, event.y - 5)
+      ctx.fillText(event.type, event.x + 5, event.y + 8)
+    })
+
+    // Draw users
+    data.forEach(userData => {
+      const isCurrentUser = userData.email === user?.email
+      
+      // Draw user circle
+      ctx.beginPath()
+      ctx.arc(userData.x, userData.y, 20, 0, 2 * Math.PI)
+      ctx.fillStyle = isCurrentUser ? 'rgba(255, 215, 0, 0.8)' : 'rgba(138, 43, 226, 0.6)'
+      ctx.fill()
+      ctx.strokeStyle = isCurrentUser ? 'rgb(255, 215, 0)' : 'rgb(138, 43, 226)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // Draw emoji
+      ctx.font = '20px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillStyle = '#ffffff'
+      ctx.fillText(isCurrentUser ? '🎤' : '🎧', userData.x, userData.y + 7)
+    })
+  }, [data, events, user])
+
+  useEffect(() => {
+    drawCanvas()
+  }, [drawCanvas])
+
+  const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return { x: 0, y: 0 }
+
+    const rect = canvas.getBoundingClientRect()
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
   }
 
-  const handlePointClick = (event: {points: Array<{pointIndex: number}>}) => {
-    if (event.points && event.points[0]) {
-      const pointIndex = event.points[0].pointIndex
-      const clickedUser = data[pointIndex]
-      setSelectedUser(clickedUser)
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoordinates(e)
     
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentXRange = (plotLayout as any)['xaxis.range[1]'] - (plotLayout as any)['xaxis.range[0]']
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentYRange = (plotLayout as any)['yaxis.range[1]'] - (plotLayout as any)['yaxis.range[0]']
+    // Check if clicked on a user
+    const clickedUser = data.find(userData => {
+      const distance = Math.sqrt(
+        Math.pow(coords.x - userData.x, 2) + Math.pow(coords.y - userData.y, 2)
+      )
+      return distance <= 20
+    })
 
-      setPlotLayout({
-        'xaxis.range[0]': clickedUser.x - currentXRange/2,
-        'xaxis.range[1]': clickedUser.x + currentXRange/2,
-        'yaxis.range[0]': clickedUser.y - currentYRange/2,
-        'yaxis.range[1]': clickedUser.y + currentYRange/2,
+    if (clickedUser) {
+      setSelectedUser(clickedUser)
+    }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoordinates(e)
+    
+    // Check if clicked on an event
+    const clickedEvent = events.find(event => {
+      return coords.x >= event.x - 40 && coords.x <= event.x + 40 &&
+             coords.y >= event.y - 20 && coords.y <= event.y + 20
+    })
+
+    if (clickedEvent) {
+      setDraggedEvent(clickedEvent.id)
+      setDragOffset({
+        x: coords.x - clickedEvent.x,
+        y: coords.y - clickedEvent.y
       })
     }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!draggedEvent) return
+
+    const coords = getCanvasCoordinates(e)
+    setEvents(prev => prev.map(event => 
+      event.id === draggedEvent 
+        ? { ...event, x: coords.x - dragOffset.x, y: coords.y - dragOffset.y }
+        : event
+    ))
+  }
+
+  const handleMouseUp = () => {
+    setDraggedEvent(null)
+    setDragOffset({ x: 0, y: 0 })
   }
 
   const handleRefresh = () => {
-    setKey(prev => prev + 1)
     fetchData()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleRelayout = (eventData: any) => {
-    if (!eventData) return
-  
-    try {
-      const newLayout: PlotLayout = {}
-  
-      if (eventData['xaxis.range[0]'] !== undefined && eventData['xaxis.range[1]'] !== undefined) {
-        newLayout['xaxis.range[0]'] = eventData['xaxis.range[0]']
-        newLayout['xaxis.range[1]'] = eventData['xaxis.range[1]']
-      }
-  
-      if (eventData['yaxis.range[0]'] !== undefined && eventData['yaxis.range[1]'] !== undefined) {
-        newLayout['yaxis.range[0]'] = eventData['yaxis.range[0]']
-        newLayout['yaxis.range[1]'] = eventData['yaxis.range[1]']
-      }
-  
-      if (Object.keys(newLayout).length > 0) {
-        setPlotLayout(newLayout)
-      }
-    } catch (error) {
-      console.error('Error in handleRelayout:', error)
+  const addEvent = () => {
+    if (!newEvent.title.trim() || !newEvent.genre.trim()) return
+
+    const event: CanvasEvent = {
+      id: Date.now().toString(),
+      x: Math.random() * 600 + 100,
+      y: Math.random() * 400 + 100,
+      title: newEvent.title,
+      description: newEvent.description,
+      color: newEvent.color,
+      type: newEvent.type,
+      genre: newEvent.genre,
+      date: newEvent.date
     }
+
+    setEvents(prev => [...prev, event])
+    setNewEvent({ 
+      title: '', 
+      description: '', 
+      color: '#ff6b6b',
+      type: 'party',
+      genre: '',
+      date: ''
+    })
+    setShowEventForm(false)
+  }
+
+  const getInstagramUsername = (url: string) => {
+    return url.split('instagram.com/')[1] || url
   }
 
   if (isLoading) {
@@ -174,9 +296,18 @@ export function ScatterChart() {
           onClick={handleRefresh}
           className="p-2 rounded-full bg-black border border-cyan-400/30 text-cyan-400
             hover:bg-cyan-950/50 hover:text-cyan-300
-            transition-all duration-200 shadow-lg"
+            transition-all duration-200 shadow-lg mr-4"
         >
           <RotateCw className="w-7 h-7" />
+        </button>
+
+        <button
+          onClick={() => setShowEventForm(true)}
+          className="px-4 py-2 rounded-full bg-purple-600 text-white
+            hover:bg-purple-700 transition-all duration-200 shadow-lg mr-4 flex items-center gap-2"
+        >
+          <Music className="w-4 h-4" />
+          Host Event
         </button>
         
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-3xl font-bold text-white animate-fade pt-4">
@@ -184,91 +315,116 @@ export function ScatterChart() {
         </h1>
       </div>
 
-      <Plot
-        key={key}
-        data={[
-          {
-            x: Array.isArray(data) ? data.map((d) => d.x) : [],
-            y: Array.isArray(data) ? data.map((d) => d.y) : [],
-            mode: "text+markers" as const,
-            type: 'scatter',
-            marker: {
-              size: 40,
-              color: Array.isArray(data)
-                ? data.map((d) => {
-                    const currentUserEmail = user?.email
-                    return d?.email === currentUserEmail 
-                      ? "rgba(66, 248, 26, 0.8)"
-                      : "rgba(0, 255, 255, 0.6)"
-                  })
-                : [],
-              symbol: "circle",
-              line: {
-                color: "rgb(0, 191, 255)",
-                width: 2,
-              },
-            },
-            text: Array.isArray(data) 
-              ? data.map((d) => {
-                  const currentUserEmail = user?.email
-                  return d?.email === currentUserEmail ? "👽" : "🌟"
-                })
-              : [],
-            textfont: {
-              size: 20,
-            },
-            textposition: "middle center" as const,
-            hoverinfo: "none" as const,
-          }
-        ]}
-        layout={{
-          paper_bgcolor: "black",
-          plot_bgcolor: "black",
-          font: {
-            family: "Arial, sans-serif",
-            color: "white",
-          },
-          xaxis: {
-            showgrid: true,
-            gridcolor: "rgba(255, 255, 255, 0.1)",
-            zeroline: false,
-            showticklabels: false,
-            fixedrange: false,
-            constraintoward: 'center',
-            range: (plotLayout as PlotLayout)['xaxis.range[0]']
-                ? [(plotLayout as PlotLayout)['xaxis.range[0]'], (plotLayout as PlotLayout)['xaxis.range[1]']]
-                : undefined
-          },
-          yaxis: {
-            showgrid: true,
-            gridcolor: "rgba(255, 255, 255, 0.1)",
-            zeroline: false,
-            showticklabels: false,
-            fixedrange: false,
-            constraintoward: 'center',
-            range: (plotLayout as PlotLayout)['yaxis.range[0]']
-                ? [(plotLayout as PlotLayout)['yaxis.range[0]'], (plotLayout as PlotLayout)['yaxis.range[1]']]
-                : undefined
-          },
-          showlegend: false,
-          dragmode: 'pan',
-        }}
-        style={{
-          width: "100%",
-          height: "90vh",
-        }}
-        config={{
-          displayModeBar: false,
-          responsive: true,
-          scrollZoom: true,  
-        }}
-        onClick={handlePointClick}
-        onRelayout={handleRelayout}
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={600}
+        className="border border-cyan-400/30 shadow-xl shadow-cyan-400/10 cursor-pointer"
+        onClick={handleCanvasClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       />
+
+      {showEventForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-black border border-purple-400 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Host a Music Event
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2">Event Name</label>
+                <input
+                  type="text"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                  placeholder="Summer Vibes Party"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Event Type</label>
+                <select
+                  value={newEvent.type}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, type: e.target.value as any }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                >
+                  <option value="party">House Party</option>
+                  <option value="concert">Concert</option>
+                  <option value="festival">Festival</option>
+                  <option value="jam-session">Jam Session</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Music Genre/Vibe</label>
+                <input
+                  type="text"
+                  value={newEvent.genre}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, genre: e.target.value }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                  placeholder="Hip-hop, Electronic, Indie Rock..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Date</label>
+                <input
+                  type="date"
+                  value={newEvent.date}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Description</label>
+                <textarea
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 h-20"
+                  placeholder="Describe the vibe and what to expect..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Theme Color</label>
+                <input
+                  type="color"
+                  value={newEvent.color}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, color: e.target.value }))}
+                  className="w-full p-1 rounded bg-gray-800 border border-gray-600"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                onClick={() => setShowEventForm(false)}
+                className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addEvent}
+                className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700 flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Host Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-black border border-cyan-400 rounded-lg p-6 max-w-md w-full mx-4 relative">
+          <div className="bg-black border border-purple-400 rounded-lg p-6 max-w-md w-full mx-4 relative">
             <button
               onClick={() => setSelectedUser(null)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -278,7 +434,9 @@ export function ScatterChart() {
 
             <div className="space-y-4">
               <div className="text-center mb-6">
+                <div className="text-4xl mb-2">🎧</div>
                 <h2 className="text-2xl font-bold text-white">{selectedUser.name}</h2>
+                <p className="text-purple-300">Music Enthusiast</p>
               </div>
 
               <div className="space-y-3">
@@ -291,9 +449,21 @@ export function ScatterChart() {
                   />
                   <a 
                     href={`mailto:${selectedUser.email}`}
-                    className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
                     {selectedUser.email}
+                  </a>
+                </div>
+
+                <div className="flex items-center space-x-3 text-gray-300">
+                  <Music className="w-6 h-6 text-green-400" />
+                  <a 
+                    href={selectedUser.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer" 
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    Music Profile
                   </a>
                 </div>
 
@@ -301,23 +471,6 @@ export function ScatterChart() {
                   <img 
                     src={instagramIcon}
                     alt="Instagram"
-                    width={24}
-                    height={24}
-                  />
-                  <a 
-                    href={selectedUser.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer" 
-                    className="text-cyan-400 hover:text-cyan-300 transition-colors"
-                  >
-                    {getInstagramUsername(selectedUser.instagram)}
-                  </a>
-                </div>
-
-                <div className="flex items-center space-x-3 text-gray-300">
-                  <img 
-                    src={discordIcon}
-                    alt="Discord"
                     width={24}
                     height={24}
                   />

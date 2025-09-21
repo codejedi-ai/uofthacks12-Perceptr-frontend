@@ -11,32 +11,32 @@ import { VantaBackground } from '../components/VantaBackground'
 const questions = [
   {
     id: 1,
-    question: "Tell me about yourself.",
+    question: "What's your music story? Tell us about your musical journey and preferences.",
     maxWords: 500
   },
   {
     id: 2,
-    question: "What are some key aspects of your culture or upbringing that shaped your perspective?",
+    question: "How has your cultural background influenced your music taste and event hosting style?",
     maxWords: 500
   },
   {
     id: 3,
-    question: "What hobbies, interests, or passions do you have that influence how you see the world?",
+    question: "What genres, artists, or music experiences inspire the events you want to host?",
     maxWords: 500
   },
   {
     id: 4,
-    question: "Have you ever had an experience that changed the way you view life or people around you?",
+    question: "Describe a memorable music event or party you've attended. What made the vibe special?",
     maxWords: 500
   },
   {
     id: 5,
-    question: "What is your greatest accomplishment?",
+    question: "What's your dream music event? Describe the perfect vibe you'd want to create.",
     maxWords: 500
   },
   {
     id: 6,
-    question: "Share your social media handles.",
+    question: "Share your music profiles and social handles so others can connect with your vibe.",
     maxWords: 50,
     isSocialMedia: true
   }
@@ -245,9 +245,9 @@ export default function Survey() {
               {currentQuestion === 5 ? (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-gray-700 font-medium">Instagram</label>
+                    <label className="text-gray-700 font-medium">Spotify/Apple Music</label>
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-500">instagram.com/</span>
+                      <span className="text-gray-500">Profile URL:</span>
                       <input
                         type="text"
                         value={socialMedia.instagram}
@@ -255,13 +255,13 @@ export default function Survey() {
                         className="flex-1 p-2 border border-gray-200 rounded-lg 
                         focus:ring-2 focus:ring-blue-100 focus:border-blue-400 
                         outline-none transition-all duration-200 text-gray-700"
-                        placeholder="username"
+                        placeholder="https://open.spotify.com/user/..."
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-gray-700 font-medium">Discord ID</label>
+                    <label className="text-gray-700 font-medium">Instagram</label>
                     <input
                       type="text"
                       value={socialMedia.discord}
@@ -269,7 +269,7 @@ export default function Survey() {
                       className="w-full p-2 border border-gray-200 rounded-lg 
                       focus:ring-2 focus:ring-blue-100 focus:border-blue-400 
                       outline-none transition-all duration-200 text-gray-700"
-                      placeholder="username#0000"
+                      placeholder="@username"
                     />
                   </div>
                 </div>

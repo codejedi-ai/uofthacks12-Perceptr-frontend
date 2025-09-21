@@ -64,7 +64,7 @@ export default function Home() {
               )}
             </div>
           </div>
-          <ScatterChart />
+          Your Music Vibe Network 🎵
         </div>
       </div>
     </div>

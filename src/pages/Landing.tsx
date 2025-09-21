@@ -76,14 +76,14 @@ export default function Landing() {
                 className="text-6xl font-bold mb-8"
               >
                 <div className='flex flex-col items-center gap-8'>
-                  Perceptr
+                  Vibe 🎵
                   <Button 
                     variant="outline" 
                     size="lg"
                     className="text-lg px-6 py-3 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-300 ease-in-out transform hover:scale-105"
                     onClick={handleGetStarted}
                   >
-                    Let's get started
+                    Share Your Vibe
                   </Button>
                 </div>
               </motion.h1>
