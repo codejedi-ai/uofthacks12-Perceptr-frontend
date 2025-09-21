@@ -11,32 +11,32 @@ import { VantaBackground } from '../components/VantaBackground'
 const questions = [
   {
     id: 1,
-    question: "What's your music story? Tell us about your musical journey and preferences.",
+    question: "Share your favorite playlists or music profiles. What perspectives do they represent?",
     maxWords: 500
   },
   {
     id: 2,
-    question: "How has your cultural background influenced your music taste and event hosting style?",
+    question: "How do different music genres change your perspective on life and events?",
     maxWords: 500
   },
   {
     id: 3,
-    question: "What genres, artists, or music experiences inspire the events you want to host?",
+    question: "Describe how music helps you see the world differently. What vibes do you create?",
     maxWords: 500
   },
   {
     id: 4,
-    question: "Describe a memorable music event or party you've attended. What made the vibe special?",
+    question: "What type of events do you want to host? How should the music shape the atmosphere?",
     maxWords: 500
   },
   {
     id: 5,
-    question: "What's your dream music event? Describe the perfect vibe you'd want to create.",
+    question: "How do you want people to feel at your events? What perspective should they gain?",
     maxWords: 500
   },
   {
     id: 6,
-    question: "Share your music profiles and social handles so others can connect with your vibe.",
+    question: "Share your Spotify/Apple Music profiles so we can analyze your playlist vibes.",
     maxWords: 50,
     isSocialMedia: true
   }
@@ -245,7 +245,7 @@ export default function Survey() {
               {currentQuestion === 5 ? (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-gray-700 font-medium">Spotify/Apple Music</label>
+                    <label className="text-gray-700 font-medium">Spotify Profile (for playlist analysis)</label>
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-500">Profile URL:</span>
                       <input
@@ -261,7 +261,7 @@ export default function Survey() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-gray-700 font-medium">Instagram</label>
+                    <label className="text-gray-700 font-medium">Apple Music Profile (optional)</label>
                     <input
                       type="text"
                       value={socialMedia.discord}
@@ -269,7 +269,7 @@ export default function Survey() {
                       className="w-full p-2 border border-gray-200 rounded-lg 
                       focus:ring-2 focus:ring-blue-100 focus:border-blue-400 
                       outline-none transition-all duration-200 text-gray-700"
-                      placeholder="@username"
+                      placeholder="Apple Music profile URL"
                     />
                   </div>
                 </div>

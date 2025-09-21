@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCw, Music, Calendar, Users } from 'lucide-react'
+import { RotateCw, Music, Calendar, Users, Zap, Eye, Palette } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import emailIcon from '/email.png'
 import instagramIcon from '/instagram.png'
@@ -22,8 +22,9 @@ interface CanvasEvent {
   title: string
   description: string
   color: string
-  type: 'concert' | 'party' | 'festival' | 'jam-session'
-  genre: string
+  type: 'chill' | 'energetic' | 'mysterious' | 'euphoric' | 'melancholic' | 'intense'
+  vibe: string
+  playlistUrl: string
   date: string
   isDragging?: boolean
 }
@@ -42,8 +43,9 @@ export function ScatterChart() {
     title: '', 
     description: '', 
     color: '#ff6b6b',
-    type: 'party' as 'concert' | 'party' | 'festival' | 'jam-session',
-    genre: '',
+    type: 'chill' as 'chill' | 'energetic' | 'mysterious' | 'euphoric' | 'melancholic' | 'intense',
+    vibe: '',
+    playlistUrl: '',
     date: ''
   })
 
@@ -156,7 +158,12 @@ export function ScatterChart() {
       ctx.fillStyle = '#ffffff'
       ctx.font = '16px Arial'
       ctx.textAlign = 'center'
-      ctx.fillText('🎵', event.x - 25, event.y + 5)
+      const vibeEmoji = event.type === 'chill' ? '😌' : 
+                       event.type === 'energetic' ? '⚡' :
+                       event.type === 'mysterious' ? '🌙' :
+                       event.type === 'euphoric' ? '✨' :
+                       event.type === 'melancholic' ? '🌧️' : '🔥'
+      ctx.fillText(vibeEmoji, event.x - 25, event.y + 5)
       
       // Draw event title
       ctx.font = '10px Arial'
@@ -181,7 +188,7 @@ export function ScatterChart() {
       ctx.font = '20px Arial'
       ctx.textAlign = 'center'
       ctx.fillStyle = '#ffffff'
-      ctx.fillText(isCurrentUser ? '🎤' : '🎧', userData.x, userData.y + 7)
+      ctx.fillText(isCurrentUser ? '👁️' : '🎭', userData.x, userData.y + 7)
     })
   }, [data, events, user])
 
@@ -306,12 +313,12 @@ export function ScatterChart() {
           className="px-4 py-2 rounded-full bg-purple-600 text-white
             hover:bg-purple-700 transition-all duration-200 shadow-lg mr-4 flex items-center gap-2"
         >
-          <Music className="w-4 h-4" />
-          Host Event
+          <Eye className="w-4 h-4" />
+          Create Perspective
         </button>
         
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-3xl font-bold text-white animate-fade pt-4">
-          Your Perspectr Network
+          Your Perspective Network
         </h1>
       </div>
 
@@ -331,44 +338,57 @@ export function ScatterChart() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-black border border-purple-400 rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Host a Music Event
+              <Palette className="w-5 h-5" />
+              Create Event Perspective
             </h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-300 mb-2">Event Name</label>
+                <label className="block text-gray-300 mb-2">Event/Gathering Name</label>
                 <input
                   type="text"
                   value={newEvent.title}
                   onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
-                  placeholder="Summer Vibes Party"
+                  placeholder="Midnight Reflections Gathering"
                 />
               </div>
               
               <div>
-                <label className="block text-gray-300 mb-2">Event Type</label>
+                <label className="block text-gray-300 mb-2">Vibe Type</label>
                 <select
                   value={newEvent.type}
                   onChange={(e) => setNewEvent(prev => ({ ...prev, type: e.target.value as any }))}
                   className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
                 >
-                  <option value="party">House Party</option>
-                  <option value="concert">Concert</option>
-                  <option value="festival">Festival</option>
-                  <option value="jam-session">Jam Session</option>
+                  <option value="chill">Chill & Relaxed</option>
+                  <option value="energetic">High Energy</option>
+                  <option value="mysterious">Mysterious & Deep</option>
+                  <option value="euphoric">Euphoric & Uplifting</option>
+                  <option value="melancholic">Melancholic & Thoughtful</option>
+                  <option value="intense">Intense & Powerful</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-gray-300 mb-2">Music Genre/Vibe</label>
+                <label className="block text-gray-300 mb-2">Playlist URL (Spotify/Apple Music)</label>
                 <input
                   type="text"
-                  value={newEvent.genre}
-                  onChange={(e) => setNewEvent(prev => ({ ...prev, genre: e.target.value }))}
+                  value={newEvent.playlistUrl}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, playlistUrl: e.target.value }))}
                   className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
-                  placeholder="Hip-hop, Electronic, Indie Rock..."
+                  placeholder="https://open.spotify.com/playlist/..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2">Vibe Description</label>
+                <input
+                  type="text"
+                  value={newEvent.vibe}
+                  onChange={(e) => setNewEvent(prev => ({ ...prev, vibe: e.target.value }))}
+                  className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
+                  placeholder="Dreamy, introspective, cosmic..."
                 />
               </div>
               
@@ -434,9 +454,9 @@ export function ScatterChart() {
 
             <div className="space-y-4">
               <div className="text-center mb-6">
-                <div className="text-4xl mb-2">🎧</div>
+                <div className="text-4xl mb-2">🎭</div>
                 <h2 className="text-2xl font-bold text-white">{selectedUser.name}</h2>
-                <p className="text-purple-300">Music Enthusiast</p>
+                <p className="text-purple-300">Perspective Creator</p>
               </div>
 
               <div className="space-y-3">
@@ -463,7 +483,7 @@ export function ScatterChart() {
                     rel="noopener noreferrer" 
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    Music Profile
+                    Playlist Profile
                   </a>
                 </div>
 
@@ -474,7 +494,14 @@ export function ScatterChart() {
                     width={24}
                     height={24}
                   />
-                  <span>{selectedUser.discord}</span>
+                  <a 
+                    href={selectedUser.discord}
+                    target="_blank"
+                    rel="noopener noreferrer" 
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    Apple Music Profile
+                  </a>
                 </div>
               </div>
             </div>

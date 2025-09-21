@@ -208,7 +208,7 @@ export default function Profile() {
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-gray-700 font-medium">Music Profile (Spotify/Apple Music)</label>
+                <label className="text-gray-700 font-medium">Spotify Profile (for playlist analysis)</label>
                 <div className="flex items-center space-x-2">
                   <span className="text-gray-500">URL:</span>
                   {isEditing ? (
@@ -228,7 +228,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-gray-700 font-medium">Instagram</label>
+                <label className="text-gray-700 font-medium">Apple Music Profile</label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -237,7 +237,7 @@ export default function Profile() {
                     className="w-full p-2 border border-gray-200 rounded-lg 
                     focus:ring-2 focus:ring-blue-100 focus:border-blue-400 
                     outline-none transition-all duration-200 text-gray-700"
-                    placeholder="@username"
+                    placeholder="Apple Music profile URL"
                   />
                 ) : (
                   <p className="text-gray-600">{socialInfo.discord}</p>
