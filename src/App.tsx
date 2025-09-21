@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Auth0Provider } from '@auth0/auth0-react'
 import { AudioButton } from './components/AudioButton'
 import { ChatButton } from './components/ChatButton'
-import { Navbar } from './components/Navbar'
 import Home from './pages/Home'
 import Survey from './pages/Survey'
 import Profile from './pages/Profile'
@@ -21,7 +20,6 @@ export function App() {
     >
       <Router>
         <div className="min-h-screen">
-          <Navbar />
           <AudioButton />
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -30,6 +28,7 @@ export function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/chat" element={<Chat />} />
           </Routes>
+          <ChatButton />
         </div>
       </Router>
     </Auth0Provider>
