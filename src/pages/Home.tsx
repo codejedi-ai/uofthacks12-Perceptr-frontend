@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { ScatterChart } from '../components/ScatterChart'
+import { CanvasBulletinBoard } from '../components/CanvasBulletinBoard'
 import { LoadingScreen } from '../components/LoadingScreen'
 
 export default function Home() {
@@ -64,8 +64,7 @@ export default function Home() {
               )}
             </div>
           </div>
-          Your Music Vibe Network 🎵
-          <ScatterChart />
+          <CanvasBulletinBoard />
         </div>
       </div>
     </div>
