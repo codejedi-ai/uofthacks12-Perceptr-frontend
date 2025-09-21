@@ -15,7 +15,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['plotly.js', 'react-plotly.js'],
+    exclude: ['plotly.js', 'react-plotly.js'],
     esbuildOptions: {
       plugins: [
         NodeGlobalsPolyfillPlugin({
