@@ -1,7 +1,7 @@
-import { useAuth } from '../contexts/AuthContext'
-import { route } from 'preact-router'
-import { useEffect, useState } from 'preact/hooks'
-import { ArrowLeft } from 'lucide-preact'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { LoadingScreen } from '../components/LoadingScreen'
 
 const questions = [
@@ -34,6 +34,7 @@ const questions = [
 
 export default function Profile() {
   const { user, loading } = useAuth()
+  const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [answers, setAnswers] = useState<{ [key: number]: string }>({})
   const [editedAnswers, setEditedAnswers] = useState<{ [key: number]: string }>({})
@@ -49,11 +50,11 @@ export default function Profile() {
       if (!user) return
 
       try {
-        const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/find_document?userId=${user.uid}`)
+        const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/find_document?userId=${user.sub}`)
         const { data } = await response.json()
 
-        if (user?.uid && data?.results && data.results[user.uid]) {
-          const userData = data.results[user.uid]
+        if (user?.sub && data?.results && data.results[user.sub]) {
+          const userData = data.results[user.sub]
           const fullText = userData.text || ''
           const answerMap: { [key: number]: string } = {}
           
@@ -97,7 +98,7 @@ export default function Profile() {
 
   if (loading || isDataLoading) return <LoadingScreen />
   if (!user) {
-    route('/')
+    navigate('/')
     return null
   }
 
@@ -127,8 +128,8 @@ export default function Profile() {
       }).join(' ')
 
       const formData = {
-        user_id: user.uid,
-        name: user.displayName,
+        user_id: user.sub,
+        name: user.name,
         email: user.email,
         text: fullText,
         social1: `https://www.instagram.com/${editedSocialInfo.instagram}`,
@@ -167,7 +168,7 @@ export default function Profile() {
         <div className="bg-white rounded-xl shadow-sm p-6 lg:p-10">
           <div className="mb-6">
             <button
-              onClick={() => route('/home')}
+              onClick={() => navigate('/home')}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 
               transition-colors duration-200 group"
             >
@@ -177,9 +178,9 @@ export default function Profile() {
           </div>
 
           <div className="flex flex-col items-center text-center pb-8">
-            {user.photoURL && (
+            {user.picture && (
               <img
-                src={user.photoURL}
+                src={user.picture}
                 alt="Profile"
                 width={80}
                 height={80}
@@ -187,7 +188,7 @@ export default function Profile() {
               />
             )}
             <div>
-              <h1 className="text-2xl font-semibold text-gray-800">{user.displayName}</h1>
+              <h1 className="text-2xl font-semibold text-gray-800">{user.name}</h1>
               <p className="text-gray-500 mt-1">{user.email}</p>
             </div>
           </div>

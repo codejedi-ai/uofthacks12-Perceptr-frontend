@@ -1,4 +1,4 @@
-import { forwardRef } from 'preact/compat'
+import { forwardRef } from 'react'
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
@@ -33,7 +33,7 @@ const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends preact.JSX.HTMLAttributes<HTMLButtonElement>,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }

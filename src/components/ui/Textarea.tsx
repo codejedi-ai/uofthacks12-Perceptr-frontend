@@ -1,9 +1,9 @@
-import { forwardRef } from 'preact/compat'
+import { forwardRef } from 'react'
 import { cn } from "@/lib/utils"
 
 const Textarea = forwardRef<
   HTMLTextAreaElement,
-  preact.JSX.HTMLAttributes<HTMLTextAreaElement>
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>
 >(({ className, ...props }, ref) => {
   return (
     <textarea

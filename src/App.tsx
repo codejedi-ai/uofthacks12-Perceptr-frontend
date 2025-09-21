@@ -1,5 +1,5 @@
-import { Router, Route } from 'preact-router'
-import { AuthProvider } from './contexts/AuthContext'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Auth0Provider } from '@auth0/auth0-react'
 import { AudioButton } from './components/AudioButton'
 import { ChatButton } from './components/ChatButton'
 import Home from './pages/Home'
@@ -10,18 +10,27 @@ import Landing from './pages/Landing'
 
 export function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen">
-        <AudioButton />
-        <Router>
-          <Route path="/" component={Landing} />
-          <Route path="/survey" component={Survey} />
-          <Route path="/home" component={Home} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/chat" component={Chat} />
-        </Router>
-        <ChatButton />
-      </div>
-    </AuthProvider>
+    <Auth0Provider
+      domain={import.meta.env.VITE_AUTH0_DOMAIN}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+      authorizationParams={{
+        redirect_uri: window.location.origin,
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE
+      }}
+    >
+      <Router>
+        <div className="min-h-screen">
+          <AudioButton />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/survey" element={<Survey />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/chat" element={<Chat />} />
+          </Routes>
+          <ChatButton />
+        </div>
+      </Router>
+    </Auth0Provider>
   )
 }

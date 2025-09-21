@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
-import { ArrowLeft, ArrowRight } from 'lucide-preact'
-import { useAuth } from '../contexts/AuthContext'
-import { route } from 'preact-router'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { LoadingScreen } from '../components/LoadingScreen'
 import { VantaBackground } from '../components/VantaBackground'
 
@@ -70,6 +70,7 @@ const textareaVariants = {
 
 export default function Survey() {
   const { user, loading, signOut } = useAuth()
+  const navigate = useNavigate()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{ [key: number]: string }>({})
   const [direction, setDirection] = useState(0)
@@ -84,11 +85,11 @@ export default function Survey() {
       if (!user) return
 
       try {
-        const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/find_document?userId=${user.uid}`)
+        const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/find_document?userId=${user.sub}`)
         const data = await response.json()
         
         if (data.exists && Object.keys(data.results).length !== 0) { 
-          route('/home')
+          navigate('/home')
         }
       } catch (error) {
         console.error('Error checking user:', error)
@@ -98,17 +99,17 @@ export default function Survey() {
     if (!loading) {
       checkUser()
     }
-  }, [user, loading])
+  }, [user, loading, navigate])
 
   if (loading) return <LoadingScreen />
   if (!user) {
-    route('/')
+    navigate('/')
     return null
   }
 
   const handleLogout = async () => {
     await signOut()
-    route('/')
+    navigate('/')
   }
 
   const handleNext = () => {
@@ -147,8 +148,8 @@ export default function Survey() {
       }).filter(text => text).join(' ')
 
       const formData = {
-        user_id: user.uid,
-        name: user.displayName,
+        user_id: user.sub,
+        name: user.name,
         email: user.email,
         text: fullText,
         social1: `https://www.instagram.com/${socialMedia.instagram}`,
@@ -167,7 +168,7 @@ export default function Survey() {
         throw new Error('Failed to submit survey')
       }
 
-      route('/home')
+      navigate('/home')
 
     } catch (error) {
       console.error('Error submitting survey:', error)
@@ -189,9 +190,9 @@ export default function Survey() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="relative">
-                {user.photoURL && (
+                {user.picture && (
                   <img
-                    src={user.photoURL}
+                    src={user.picture}
                     width={60}
                     height={60}
                     alt="Profile"
@@ -209,7 +210,7 @@ export default function Survey() {
                   </Button>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-white">Welcome, {user.displayName}!</h1>
+              <h1 className="text-2xl font-bold text-white">Welcome, {user.name}!</h1>
             </div>
           </div>
         </div>

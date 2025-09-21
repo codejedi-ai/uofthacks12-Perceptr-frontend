@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'preact/hooks'
-import { Volume2, VolumeX } from 'lucide-preact'
+import { useState, useRef, useEffect } from 'react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export function AudioButton() {

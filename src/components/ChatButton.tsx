@@ -1,9 +1,11 @@
-import { MessageCircle } from 'lucide-preact'
-import { route } from 'preact-router'
+import { MessageCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export function ChatButton() {
+  const navigate = useNavigate()
+  
   const handleClick = () => {
-    route('/chat')
+    navigate('/chat')
   }
 
   return (

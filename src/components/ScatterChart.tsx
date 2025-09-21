@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect } from 'react'
 import Plot from 'react-plotly.js'
-import { RotateCw } from 'lucide-preact'
-import { useAuth } from '../contexts/AuthContext'
+import { RotateCw } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 import emailIcon from '/email.png'
 import instagramIcon from '/instagram.png'
 import discordIcon from '/discord.png'
@@ -38,7 +38,7 @@ export function ScatterChart() {
   const fetchData = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/query?userId=${user?.uid}`)
+      const response = await fetch(`https://7503-199-7-156-226.ngrok-free.app/query?userId=${user?.sub}`)
       const embeddingsData = await response.json()
       
       const transformedData = await Promise.all(

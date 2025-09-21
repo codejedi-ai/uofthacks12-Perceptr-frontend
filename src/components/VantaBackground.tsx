@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 interface VantaBackgroundProps {
-  children: preact.ComponentChildren
+  children: React.ReactNode
 }
 
 interface VantaEffect {

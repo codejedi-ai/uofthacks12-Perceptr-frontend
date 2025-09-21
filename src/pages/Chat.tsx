@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useState } from 'react'
 import { VantaBackground } from '../components/VantaBackground'
 
 interface Message {

@@ -1,27 +1,28 @@
-import { useState } from 'preact/hooks'
-import { useAuth } from '../contexts/AuthContext'
-import { route } from 'preact-router'
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { ScatterChart } from '../components/ScatterChart'
 import { LoadingScreen } from '../components/LoadingScreen'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
+  const navigate = useNavigate()
   const [showMenu, setShowMenu] = useState(false)
 
   if (loading) return <LoadingScreen />
   if (!user) {
-    route('/')
+    navigate('/')
     return null
   }
 
   const handleLogout = async () => {
     await signOut()
-    route('/')
+    navigate('/')
   }
 
   const handleProfile = () => {
-    route('/profile')
+    navigate('/profile')
   }
 
   return (
@@ -31,9 +32,9 @@ export default function Home() {
         shadow-cyan-400/10 bg-black">
           <div className="absolute top-4 right-4 z-50">
             <div className="relative">
-              {user.photoURL && (
+              {user.picture && (
                 <img
-                  src={user.photoURL}
+                  src={user.picture}
                   width={48}
                   height={48}
                   alt="Profile"

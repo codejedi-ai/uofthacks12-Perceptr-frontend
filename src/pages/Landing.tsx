@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '../contexts/AuthContext'
-import { route } from 'preact-router'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { VantaBackground } from '../components/VantaBackground'
 
 const smoothTransition = {
@@ -13,11 +13,12 @@ const smoothTransition = {
 
 export default function Landing() {
   const { user, signInWithGoogle } = useAuth()
+  const navigate = useNavigate()
   const [stage, setStage] = useState(0)
 
   useEffect(() => {
     if (user) {
-      route('/survey')
+      navigate('/survey')
       return
     }
 
@@ -27,7 +28,7 @@ export default function Landing() {
       clearTimeout(timer1)
       clearTimeout(timer2)
     }
-  }, [user])
+  }, [user, navigate])
 
   const handleGetStarted = async () => {
     try {
