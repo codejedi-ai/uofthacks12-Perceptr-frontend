@@ -5,8 +5,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "dev:full": "concurrently \"netlify dev\" \"vite\"",
         "build": "vite build",
-        "build:functions": "cd netlify/functions && tsc",
+        "build:functions": "cd netlify/functions && find . -name '*.ts' -exec tsc {} \\;",
         "preview": "vite preview"
     },
     "dependencies": {
@@ -14,6 +15,7 @@
     },
     "devDependencies": {
         "@preact/preset-vite": "^2.7.0",
+        "concurrently": "^8.2.2",
         "netlify-cli": "^23.6.0",
         "typescript": "^5.2.2",
         "vite": "^6.2.6"

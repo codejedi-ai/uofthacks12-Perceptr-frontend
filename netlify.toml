@@ -1,11 +1,21 @@
 [build]
   publish = "dist"
   command = "npm run build && npm run build:functions"
-  functions = "netlify/functions/dist"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/hello/*"
   to = "/.netlify/functions/hello"
+  status = 200
+
+[[redirects]]
+  from = "/api/fetch-pages"
+  to = "/.netlify/functions/fetch-pages"
+  status = 200
+
+[[redirects]]
+  from = "/api/update-worker"
+  to = "/.netlify/functions/update-worker"
   status = 200
 
 [[redirects]]
