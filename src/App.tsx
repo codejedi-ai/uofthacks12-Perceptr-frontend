@@ -312,6 +312,12 @@ export default function App({ onNavigate }: AppProps) {
         };
 
         canvas.addEventListener("mousedown", handleMouseDown);
+        // Pointer support for touch devices
+        const handlePointerDown = (e: PointerEvent) => {
+            // Normalize to mouse down path
+            handleMouseDown(e as unknown as MouseEvent);
+        };
+        canvas.addEventListener("pointerdown", handlePointerDown, { passive: false } as any);
         // Use window-level listeners to ensure drag end is captured even outside the canvas
         window.addEventListener("mousemove", handleMouseMove);
         window.addEventListener("mouseup", handleMouseUp);
@@ -358,6 +364,7 @@ export default function App({ onNavigate }: AppProps) {
             window.removeEventListener("blur", handleMouseUp);
             document.removeEventListener("visibilitychange", handleVisibility);
             canvas.removeEventListener("wheel", handleWheel as any);
+            canvas.removeEventListener("pointerdown", handlePointerDown as any);
         };
         }, [events, papers, panOffset, isPanning, isDraggingPaper, draggedPaperIndex, dragOffset, scale]);
 
@@ -479,7 +486,8 @@ export default function App({ onNavigate }: AppProps) {
                         width: "calc(100% - 4px)",
                         height: "calc(100% - 4px)",
                         margin: "2px",
-                        cursor: hoveredButtonIndex !== -1 ? "pointer" : isDraggingEvent ? "grabbing" : isPanning ? "grabbing" : "grab",
+                        cursor: hoveredButtonIndex !== -1 ? "pointer" : isDraggingPaper ? "grabbing" : isPanning ? "grabbing" : "grab",
+                        touchAction: "none"
                     }}
                 />
             </div>
