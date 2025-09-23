@@ -120,24 +120,35 @@ class ApiService {
       return '';
     };
 
-    // Helper to extract color string from rich_text/select and normalize
+    // Helper to extract color value; prefer Notion select.color over name
     const extractColor = (property: any): string => {
-      let raw = '';
       if (!property) return '';
+      // Notion select color tokens → hex
+      const selectColor = property?.select?.color || (Array.isArray(property?.multi_select) && property.multi_select[0]?.color);
+      if (selectColor) {
+        const map: Record<string, string> = {
+          default: '#4CAF50',
+          gray: '#9e9e9e',
+          brown: '#8d6e63',
+          orange: '#fb8c00',
+          yellow: '#fbc02d',
+          green: '#43a047',
+          blue: '#1e88e5',
+          purple: '#8e24aa',
+          pink: '#d81b60',
+          red: '#e53935'
+        };
+        return map[selectColor] || '#4CAF50';
+      }
+      // rich_text fallback (expects a literal hex or css color string)
       if (Array.isArray(property.rich_text)) {
-        raw = property.rich_text.map((t: any) => t.plain_text).join('');
-      } else if (property?.select?.name) {
-        raw = property.select.name;
-      } else if (typeof property === 'string') {
-        raw = property;
+        const raw = property.rich_text.map((t: any) => t.plain_text).join('').trim();
+        if (!raw) return '';
+        if (/^#?[0-9a-fA-F]{6}$/.test(raw)) return raw.startsWith('#') ? raw : `#${raw}`;
+        return raw;
       }
-      raw = String(raw).trim();
-      if (!raw) return '';
-      // If it's a CSS color name or already a hex, return as-is; if it looks like hex without '#', add it
-      if (/^#?[0-9a-fA-F]{6}$/.test(raw)) {
-        return raw.startsWith('#') ? raw : `#${raw}`;
-      }
-      return raw;
+      if (typeof property === 'string') return property;
+      return '';
     };
 
     // Extract properties with fallbacks
