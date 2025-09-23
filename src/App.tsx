@@ -288,20 +288,22 @@ export default function App({ onNavigate }: AppProps) {
             }
         };
 
-        const handleMouseUp = async () => {
+        const handleMouseUp = () => {
             setIsPanning(false);
             
             // If we were dragging an event, update its coordinates in the database
             if (isDraggingEvent && draggedEventIndex >= 0) {
-                const event = events[draggedEventIndex];
-                try {
-                    await workerManager.updateEvent(event.id, {
-                        x: event.x,
-                        y: event.y
-                    });
-                    console.log(`✅ Updated coordinates for "${event.title}" to (${event.x}, ${event.y})`);
-                } catch (error) {
-                    console.error('Failed to update event coordinates:', error);
+                const latest = events[draggedEventIndex];
+                if (latest) {
+                    const { id, title, x, y } = latest;
+                    // First exit drag state immediately
+                    setIsDraggingEvent(false);
+                    setDraggedEventIndex(-1);
+                    // Fire-and-forget backend update (do not await)
+                    workerManager.updateEvent(id, { x, y })
+                        .then(() => console.log(`✅ Enqueued coordinate update for "${title}" (${id}) to (${x}, ${y})`))
+                        .catch((error) => console.error('Failed to update event coordinates:', error));
+                    return;
                 }
             }
             
