@@ -432,8 +432,10 @@ export default function App({ onNavigate }: AppProps) {
 
             setScale(newScale);
             setPanOffset({ x: newPanX, y: newPanY });
+            // Prevent page scroll/zoom outside canvas
+            if (e.cancelable) e.preventDefault();
         };
-        canvas.addEventListener("wheel", handleWheel, { passive: true });
+        canvas.addEventListener("wheel", handleWheel, { passive: false } as any);
 
         // Cleanup
         return () => {
