@@ -325,6 +325,8 @@ export default function App({ onNavigate }: AppProps) {
         const handlePointerDown = (e: PointerEvent) => {
             // Track pointers for pinch
             activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            // Prevent browser gestures
+            if (e.cancelable) e.preventDefault();
             if (activePointersRef.current.size === 2) {
                 // Begin pinch
                 const pts = Array.from(activePointersRef.current.values());
@@ -352,10 +354,12 @@ export default function App({ onNavigate }: AppProps) {
             activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (isPinchingRef.current && activePointersRef.current.size >= 2) {
                 const pts = Array.from(activePointersRef.current.values());
+                // Scale: distance change between two fingers
                 const dx = pts[1].x - pts[0].x;
                 const dy = pts[1].y - pts[0].y;
                 const dist = Math.hypot(dx, dy) || 1;
                 const rect = canvas.getBoundingClientRect();
+                // Midpoint for anchoring
                 const mid = { x: (pts[0].x + pts[1].x) / 2 - rect.left, y: (pts[0].y + pts[1].y) / 2 - rect.top };
                 const startMid = { x: pinchStartMidRef.current.x - rect.left, y: pinchStartMidRef.current.y - rect.top };
                 const s0 = pinchStartScaleRef.current;
@@ -363,8 +367,13 @@ export default function App({ onNavigate }: AppProps) {
                 // Keep world point under the original midpoint fixed
                 const worldX = (startMid.x - pinchStartPanRef.current.x) / s0;
                 const worldY = (startMid.y - pinchStartPanRef.current.y) / s0;
-                const newPanX = mid.x - worldX * s1;
-                const newPanY = mid.y - worldY * s1;
+                let newPanX = mid.x - worldX * s1;
+                let newPanY = mid.y - worldY * s1;
+                // Also allow panning while pinching by moving midpoint
+                const midDx = mid.x - startMid.x;
+                const midDy = mid.y - startMid.y;
+                newPanX += midDx;
+                newPanY += midDy;
                 setScale(s1);
                 setPanOffset({ x: newPanX, y: newPanY });
                 e.preventDefault();
