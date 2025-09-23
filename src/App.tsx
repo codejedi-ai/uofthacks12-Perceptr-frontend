@@ -20,6 +20,7 @@ export default function App({ onNavigate }: AppProps) {
     const [showAddForm, setShowAddForm] = useState(false);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
+    const [scale, setScale] = useState(1);
     const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [isDraggingEvent, setIsDraggingEvent] = useState(false);
@@ -127,6 +128,7 @@ export default function App({ onNavigate }: AppProps) {
             // Save context for panning
             ctx.save();
             ctx.translate(panOffset.x, panOffset.y);
+            ctx.scale(scale, scale);
             
             // Draw white bulletin board background (infinite)
             ctx.fillStyle = "#FFFFFF";
@@ -172,8 +174,8 @@ export default function App({ onNavigate }: AppProps) {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            const adjustedMouseX = mouseX - panOffset.x;
-            const adjustedMouseY = mouseY - panOffset.y;
+            const adjustedMouseX = (mouseX - panOffset.x) / scale;
+            const adjustedMouseY = (mouseY - panOffset.y) / scale;
 
             // Check if clicking on an event (paper or push pin)
             let clickedOnEvent = false;
@@ -237,8 +239,8 @@ export default function App({ onNavigate }: AppProps) {
                 
                 setLastPanPoint({ x: mouseX, y: mouseY });
             } else if (isDraggingEvent && draggedEventIndex >= 0) {
-                const adjustedMouseX = mouseX - panOffset.x;
-                const adjustedMouseY = mouseY - panOffset.y;
+                const adjustedMouseX = (mouseX - panOffset.x) / scale;
+                const adjustedMouseY = (mouseY - panOffset.y) / scale;
                 
                 const newX = adjustedMouseX - dragOffset.x;
                 const newY = adjustedMouseY - dragOffset.y;
@@ -251,8 +253,8 @@ export default function App({ onNavigate }: AppProps) {
                 ));
             } else {
                 // Check for button hover
-                const adjustedMouseX = mouseX - panOffset.x;
-                const adjustedMouseY = mouseY - panOffset.y;
+                const adjustedMouseX = (mouseX - panOffset.x) / scale;
+                const adjustedMouseY = (mouseY - panOffset.y) / scale;
                 
                 let foundHover = false;
                 for (let i = 0; i < papers.length; i++) {
@@ -311,6 +313,26 @@ export default function App({ onNavigate }: AppProps) {
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("mouseup", handleMouseUp);
         canvas.addEventListener("mouseleave", handleMouseUp);
+        const handleWheel = (e: WheelEvent) => {
+            // Zoom towards mouse position
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const worldXBefore = (mouseX - panOffset.x) / scale;
+            const worldYBefore = (mouseY - panOffset.y) / scale;
+
+            const delta = -Math.sign(e.deltaY) * 0.1; // zoom step
+            const newScale = Math.min(3, Math.max(0.25, scale + delta));
+            if (newScale === scale) return;
+
+            // Adjust panOffset so the point under the cursor stays under the cursor
+            const newPanX = mouseX - worldXBefore * newScale;
+            const newPanY = mouseY - worldYBefore * newScale;
+
+            setScale(newScale);
+            setPanOffset({ x: newPanX, y: newPanY });
+        };
+        canvas.addEventListener("wheel", handleWheel, { passive: true });
 
         // Cleanup
         return () => {
@@ -319,8 +341,9 @@ export default function App({ onNavigate }: AppProps) {
             canvas.removeEventListener("mousemove", handleMouseMove);
             canvas.removeEventListener("mouseup", handleMouseUp);
             canvas.removeEventListener("mouseleave", handleMouseUp);
+            canvas.removeEventListener("wheel", handleWheel as any);
         };
-    }, [events, papers, panOffset, isPanning, isDraggingEvent, draggedEventIndex, dragOffset]);
+    }, [events, papers, panOffset, isPanning, isDraggingEvent, draggedEventIndex, dragOffset, scale]);
 
     // Handle window resize for responsive design
     useEffect(() => {
@@ -356,8 +379,8 @@ export default function App({ onNavigate }: AppProps) {
     const addEvent = async (title: string, description: string, link: string = "", buttonColor: string = "#4CAF50", type: 'event' | 'community' = 'event', time?: string) => {
         try {
             // Calculate center of screen in world coordinates
-            const screenCenterX = (window.innerWidth / 2) - panOffset.x;
-            const screenCenterY = (window.innerHeight / 2) - panOffset.y;
+            const screenCenterX = ((window.innerWidth / 2) - panOffset.x) / scale;
+            const screenCenterY = ((window.innerHeight / 2) - panOffset.y) / scale;
             
             const now = new Date();
             const eventData = {

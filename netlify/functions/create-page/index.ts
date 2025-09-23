@@ -3,7 +3,7 @@ import {
   NetlifyContext,
   ErrorResponse
 } from '../shared/models';
-import { Bulletin_boardPages_DB } from '../shared/constants';
+import { Bulletin_boardPages_DB, TitlePropertyName } from '../shared/constants';
 
 const handler = async (event: NetlifyEvent, context: NetlifyContext) => {
   const headers = { 'Content-Type': 'application/json' };
@@ -56,8 +56,8 @@ const handler = async (event: NetlifyEvent, context: NetlifyContext) => {
     const payload = {
       parent: { database_id: Bulletin_boardPages_DB },
       properties: {
-        // Common title property name in Notion DBs is "Name"
-        Name: {
+        // Title property name (configured)
+        [TitlePropertyName]: {
           title: [
             {
               type: 'text',
