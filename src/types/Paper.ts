@@ -1,6 +1,6 @@
-import { Event } from "../types/Event";
+import { Event } from "./Event";
 
-export class Paper {
+export abstract class Paper {
   public isHoveringButton: boolean = false;
 
   constructor(
@@ -57,7 +57,6 @@ export class Paper {
            my >= buttonY && my <= buttonY + buttonHeight;
   }
 
-
   draw(gc: CanvasRenderingContext2D): void {
     gc.save();
     
@@ -65,14 +64,65 @@ export class Paper {
     const x = this.event.x - width / 2;
     const y = this.event.y - this.height / 2;
     
-    // Draw paper background
-    gc.fillStyle = this.event.color;
-    gc.strokeStyle = "#333";
-    gc.lineWidth = 2;
-    gc.beginPath();
-    gc.roundRect(x, y, width, this.height, 8);
-    gc.fill();
-    gc.stroke();
+    // Variant-specific background
+    const variant = this.event.variant || 'sticky';
+    if (variant === 'photo' && this.event.imageUrl) {
+      // Photo style: draw polaroid frame and image
+      const framePadding = 10;
+      const footer = 18;
+      const frameX = x;
+      const frameY = y;
+      const frameW = width;
+      const frameH = this.height + footer;
+      gc.fillStyle = '#fff';
+      gc.strokeStyle = '#333';
+      gc.lineWidth = 2;
+      gc.beginPath();
+      gc.roundRect(frameX, frameY, frameW, frameH, 8);
+      gc.fill();
+      gc.stroke();
+      const imgX = frameX + framePadding;
+      const imgY = frameY + framePadding;
+      const imgW = frameW - framePadding * 2;
+      const imgH = this.height - framePadding * 2;
+      const img = new Image();
+      img.onload = () => {
+        gc.drawImage(img, imgX, imgY, imgW, imgH);
+      };
+      img.src = this.event.imageUrl;
+    } else if (variant === 'lined') {
+      // Lined paper style
+      gc.fillStyle = this.event.color;
+      gc.strokeStyle = "#333";
+      gc.lineWidth = 2;
+      gc.beginPath();
+      gc.roundRect(x, y, width, this.height, 8);
+      gc.fill();
+      gc.stroke();
+      gc.strokeStyle = 'rgba(0,0,0,0.15)';
+      gc.lineWidth = 1;
+      for (let ly = y + 24; ly < y + this.height - 10; ly += 14) {
+        gc.beginPath();
+        gc.moveTo(x + 10, ly);
+        gc.lineTo(x + width - 10, ly);
+        gc.stroke();
+      }
+      // Red margin
+      gc.strokeStyle = 'rgba(255,0,0,0.35)';
+      gc.beginPath();
+      gc.moveTo(x + 24, y + 10);
+      gc.lineTo(x + 24, y + this.height - 10);
+      gc.stroke();
+    } else {
+      // Sticky default
+      gc.fillStyle = this.event.color;
+      gc.strokeStyle = "#333";
+      gc.lineWidth = 2;
+      gc.beginPath();
+      gc.roundRect(x, y, width, this.height, 8);
+      gc.fill();
+      gc.stroke();
+    }
     
     // Draw shadow effect
     gc.fillStyle = "rgba(0, 0, 0, 0.1)";
@@ -131,8 +181,8 @@ export class Paper {
     }
     gc.fillText(line, this.event.x, yPos);
     
-    // Draw time for events
-    if (this.event.type === 'event' && this.event.time) {
+    // Draw time footer if present
+    if (this.event.time) {
       yPos += 20;
       gc.font = "bold 11px Arial";
       gc.fillStyle = "#8B4513";
@@ -190,7 +240,7 @@ export class Paper {
   }
 
   // Draw the link button
-  private drawLinkButton(gc: CanvasRenderingContext2D): void {
+  protected drawLinkButton(gc: CanvasRenderingContext2D): void {
     const width = this.getComputedWidth();
     const buttonX = this.event.x - width / 2 + 10;
     const buttonY = this.event.y + this.height / 2 - 35;
@@ -233,37 +283,26 @@ export class Paper {
     gc.textAlign = "center";
     gc.textBaseline = "middle";
     
-    // Determine button text based on link type and event type
-    let buttonText = "🔗 Join";
-    
-    if (this.event.type === 'event') {
-      if (this.isLumaUrl(this.event.link)) {
-        buttonText = "📅 Luma";
-      } else if (this.isGetRiverUrl(this.event.link)) {
-        buttonText = "🌊 GetRiver";
-      } else {
-        buttonText = "📅 Event";
-      }
-    } else {
-      // Community type
-      if (this.event.link.includes("discord")) {
-        buttonText = "💬 Discord";
-      } else if (this.event.link.includes("slack")) {
-        buttonText = "💼 Slack";
-      } else if (this.event.link.includes("telegram")) {
-        buttonText = "📱 Telegram";
-      } else if (this.event.link.startsWith("http")) {
-        buttonText = "🌐 Website";
-      } else {
-        buttonText = "👥 Join";
-      }
-    }
+    const buttonText = this.getButtonText();
 
     gc.fillText(buttonText, this.event.x, buttonY + buttonHeight / 2);
     
     if (this.isHoveringButton) {
       gc.restore();
     }
+  }
+
+  // Compute default button text; subclasses may override for specialized behavior
+  protected getButtonText(): string {
+    if (!this.event.link) return "🔗 Link";
+    const link = this.event.link.toLowerCase();
+    if (this.isLumaUrl(link)) return "📅 Luma";
+    if (this.isGetRiverUrl(link)) return "🌊 GetRiver";
+    if (link.includes("discord")) return "💬 Discord";
+    if (link.includes("slack")) return "💼 Slack";
+    if (link.includes("telegram")) return "📱 Telegram";
+    if (link.startsWith("http")) return "🌐 Website";
+    return "🔗 Link";
   }
 
   // Helper function to lighten a color
@@ -333,3 +372,5 @@ export class Paper {
     return getRiverPatterns.some(pattern => url.toLowerCase().includes(pattern.toLowerCase()));
   }
 }
+
+

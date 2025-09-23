@@ -5,7 +5,7 @@ import { Event } from '../types/Event';
 const NOTION_API_BASE = '/api';
 
 interface WorkerMessage {
-  type: 'FETCH_EVENTS' | 'FETCH_EVENT' | 'CREATE_EVENT' | 'UPDATE_EVENT' | 'DELETE_EVENT';
+  type: 'FETCH_EVENTS' | 'FETCH_EVENT' | 'CREATE_PAGE' | 'UPDATE_EVENT' | 'DELETE_EVENT';
   payload?: any;
 }
 
@@ -120,10 +120,10 @@ async function fetchEvent(id: string): Promise<Event | null> {
   }
 }
 
-// Create new event in Notion (persist first, then display)
-async function createEvent(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<Event> {
+// Create new page in Notion (persist first, then display)
+async function createPage(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<Event> {
   try {
-    console.log(`Creating ${eventData.type}: "${eventData.title}" in Notion`);
+    console.log(`Creating page: "${eventData.title}" in Notion`);
 
     const response = await fetch(`${NOTION_API_BASE}/create-page`, {
       method: 'POST',
@@ -163,8 +163,8 @@ async function createEvent(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<
     console.log(`✅ Created Notion page ${id} for "${eventData.title}"`);
     return newEvent;
   } catch (error) {
-    console.error(`❌ Failed to create ${eventData.type} "${eventData.title}":`, error);
-    throw new Error('Failed to create event');
+    console.error(`❌ Failed to create page "${eventData.title}":`, error);
+    throw new Error('Failed to create page');
   }
 }
 
@@ -231,8 +231,8 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
         response = { type: 'EVENT_LOADED', payload: event };
         break;
         
-      case 'CREATE_EVENT':
-        const newEvent = await createEvent(payload);
+      case 'CREATE_PAGE':
+        const newEvent = await createPage(payload);
         response = { type: 'EVENT_CREATED', payload: newEvent };
         break;
         

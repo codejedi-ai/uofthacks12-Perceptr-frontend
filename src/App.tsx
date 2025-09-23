@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { Event } from "./types/Event";
-import { Paper } from "./shapes/Paper";
+import { Paper } from "./types/Paper";
 import AddItemForm from "./components/AddItemForm";
 import Navbar from "./components/Navbar";
 import { workerManager } from "./utils/workerManager";

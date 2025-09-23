@@ -175,27 +175,32 @@ class WorkerManager {
     }
   }
 
-  // Create new event
-  async createEvent(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<Event> {
+  // Create new page (formerly createEvent)
+  async createPage(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<Event> {
     try {
-      console.log(`📝 Queuing ${eventData.type} creation: "${eventData.title}"`);
+      console.log(`📝 Queuing page creation: "${eventData.title}"`);
       const result = await this.sendMessage<Event>({ 
-        type: 'CREATE_EVENT', 
+        type: 'CREATE_PAGE', 
         payload: eventData 
       });
-      console.log(`✅ ${eventData.type} creation completed: "${eventData.title}"`);
+      console.log(`✅ Page creation completed: "${eventData.title}"`);
       return result;
     } catch (error) {
-      console.error(`❌ Failed to create ${eventData.type}:`, error);
+      console.error(`❌ Failed to create page:`, error);
       // Fallback to local creation when worker is not available
       const newEvent: Event = {
         ...eventData,
         id: Date.now().toString(),
         createdAt: new Date()
       };
-      console.log(`🔄 Created ${eventData.type} locally as fallback: "${newEvent.title}" (ID: ${newEvent.id})`);
+      console.log(`🔄 Created page locally as fallback: "${newEvent.title}" (ID: ${newEvent.id})`);
       return newEvent;
     }
+  }
+
+  // Back-compat: alias
+  async createEvent(eventData: Omit<Event, 'id' | 'createdAt'>): Promise<Event> {
+    return this.createPage(eventData);
   }
 
   // Update event

@@ -49,7 +49,7 @@ class ApiService {
         throw new Error(data.message || 'Failed to fetch pages');
       }
 
-      // Map Notion pages to Event objects (preserve `this` context)
+      // Map Notion pages to Event instances (preserve `this` context)
       return data.pages.map((page) => this.mapNotionPageToEvent(page));
     } catch (error) {
       console.error('Failed to fetch pages from API:', error);
@@ -147,13 +147,20 @@ class ApiService {
       || extractText(properties.Title)
       || extractText(properties.Name)
       || 'Untitled Event';
-    const description = extractText(properties.Description) || '';
+    // Prefer `content` as the body shown on the paper, with fallbacks
+    const description = extractText(properties.content)
+      || extractText(properties.Content)
+      || extractText(properties.Description)
+      || '';
     // Support Link as url type or rich_text, and multiple casings/keys
     const link = extractUrl(properties.Link) 
       || extractUrl(properties.link) 
       || extractUrl(properties.URL) 
       || extractUrl(properties.url) 
       || '';
+    const imageUrl = extractUrl(properties.image) || extractUrl(properties.Image) || '';
+    const variantText = extractText(properties.variant) || extractText(properties.Variant) || '';
+    const variant = (variantText === 'photo' || variantText === 'lined') ? (variantText as 'photo' | 'lined') : 'sticky';
     // Support custom coordinate fields with sensible fallbacks: pos_x/pos_y → x/y → X/Y
     const x = extractNumber(properties.pos_x ?? properties.x ?? properties.X);
     const y = extractNumber(properties.pos_y ?? properties.y ?? properties.Y);
@@ -161,14 +168,13 @@ class ApiService {
     const buttonColor = extractColor(properties.button_color)
       || extractColor(properties['Button Color'])
       || '#4CAF50';
-    const type = extractText(properties.Type) === 'community' ? 'community' : 'event';
     const time = extractText(properties.Time) || undefined;
 
     // Generate color based on creation date
     const createdAt = new Date(page.created_time);
     const color = this.getPaperColorByDay(createdAt);
 
-    return {
+    return new Event({
       id: page.id,
       title,
       description,
@@ -177,10 +183,11 @@ class ApiService {
       y,
       color,
       buttonColor,
-      type: type as 'event' | 'community',
       time,
-      createdAt
-    };
+      createdAt,
+      imageUrl: imageUrl || undefined,
+      variant
+    });
   }
 
   // Helper function to get paper color based on day of week
